@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Benchmade Knife Finder</title>
+  <style>
+    body { margin: 0; background: white; }
+  </style>
+</head>
+<body>
+  <main
+    id="alhena-quiz-slot"
+    aria-label="Benchmade Knife Finder"
+    data-alhena-page="https://benchmade-9c8f406672.alhena-studio.pages.dev/"
+  ></main>
+  <noscript>Please enable JavaScript to use the Knife Finder.</noscript>
+
+  <script>
+    // The internal HTTP preview needs this secure-random UUID v4 fallback.
+    if (!window.crypto.randomUUID) {
+      window.crypto.randomUUID = function () {
+        const bytes = window.crypto.getRandomValues(new Uint8Array(16));
+        bytes[6] = (bytes[6] & 15) | 64;
+        bytes[8] = (bytes[8] & 63) | 128;
+        const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, "0"));
+        return [hex.slice(0, 4), hex.slice(4, 6), hex.slice(6, 8), hex.slice(8, 10), hex.slice(10)].map(part => part.join("")).join("-");
+      };
+    }
+
+    // The SDK automatically mounts the data-alhena-page container above.
+    document.gleenConfig = {
+      company: "benchmade",
+      apiBaseUrl: "https://app.alhena.ai",
+      hideDefaultUI: true
+    };
+  </script>
+  <script src="https://app.alhena.ai/sdk/gleenWidget.js" defer></script>
+</body>
+</html>
