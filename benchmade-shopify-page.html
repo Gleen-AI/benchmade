@@ -1,0 +1,74 @@
+<!-- Paste this entire fragment once into the new page's Custom Liquid section.
+     Requires the store's existing Alhena Shopify SDK installation. -->
+<div data-benchmade-quiz-page aria-busy="true">
+  <div
+    data-alhena-page="https://benchmade-9c8f406672.alhena-studio.pages.dev/"
+    aria-label="Benchmade Knife Finder"
+  ></div>
+  <p data-quiz-error role="status" hidden>
+    The Knife Finder couldn't load. Please refresh this page to try again.
+  </p>
+  <noscript>Please enable JavaScript to use the Knife Finder.</noscript>
+</div>
+<script>
+(function () {
+  'use strict';
+
+  const wrapper = document.currentScript.previousElementSibling;
+  if (!wrapper || !wrapper.hasAttribute('data-benchmade-quiz-page')) return;
+  if (wrapper.dataset.quizStarted) return;
+  wrapper.dataset.quizStarted = 'true';
+
+  const slot = wrapper.querySelector('[data-alhena-page]');
+  const errorMessage = wrapper.querySelector('[data-quiz-error]');
+  const timeoutMs = 30000;
+  let mountError;
+
+  function waitFor(check, description) {
+    const deadline = Date.now() + timeoutMs;
+    return new Promise(function (resolve, reject) {
+      function poll() {
+        try {
+          if (!wrapper.isConnected) throw new Error('Quiz section was removed');
+          if (mountError) throw mountError;
+          const value = check();
+          if (value) return resolve(value);
+          if (Date.now() >= deadline) throw new Error(description + ' timed out');
+          setTimeout(poll, 100);
+        } catch (error) {
+          reject(error);
+        }
+      }
+      poll();
+    });
+  }
+
+  async function loadQuiz() {
+    // The SDK initially exposes a no-op stub. Wait for the actual chat bundle.
+    await waitFor(function () {
+      return window._alhenaChatAppLoaded === true &&
+        typeof window.gleenWidget?.initializeStudioPages === 'function';
+    }, 'Alhena SDK');
+
+    // Safe if the SDK already auto-mounted this static data-alhena-page slot.
+    Promise.resolve(window.gleenWidget.initializeStudioPages()).catch(function (error) {
+      mountError = error || new Error('Quiz initialization failed');
+    });
+
+    // The SDK can handle mount errors internally. Check actual answer buttons.
+    await waitFor(function () {
+      return slot.shadowRoot?.querySelector('#options button[data-choice]');
+    }, 'Alhena quiz');
+    wrapper.removeAttribute('aria-busy');
+  }
+
+  loadQuiz().catch(function (error) {
+    if (!wrapper.isConnected) return;
+    // Keep a timed-out mount hidden even if its scripts finish later.
+    slot.style.setProperty('display', 'none', 'important');
+    wrapper.removeAttribute('aria-busy');
+    errorMessage.hidden = false;
+    console.warn('[Benchmade quiz] Unable to load:', error.message);
+  });
+}());
+</script>
